@@ -4,7 +4,7 @@ from django.urls import path, reverse
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
 from django.utils import timezone
-from .models import SellerVerificationApplication, UserProfile, Meal
+from .models import SellerVerificationApplication, UserProfile, Meal, Reservation
 
 
 @admin.register(SellerVerificationApplication)
@@ -156,3 +156,20 @@ class MealAdmin(admin.ModelAdmin):
     list_filter = ['is_available', 'created_at']
     search_fields = ['title', 'seller__username', 'pickup_location']
     readonly_fields = ['created_at', 'updated_at']
+
+
+@admin.register(Reservation)
+class ReservationAdmin(admin.ModelAdmin):
+    list_display = ['id', 'meal', 'buyer', 'seller_display', 'quantity', 'total_price', 'status', 'created_at']
+    list_filter = ['status', 'created_at']
+    search_fields = ['meal__title', 'buyer__username', 'meal__seller__username', 'buyer_phone']
+    readonly_fields = ['created_at', 'updated_at', 'total_price']
+    list_editable = ['status']
+    
+    def seller_display(self, obj):
+        return obj.meal.seller.username
+    seller_display.short_description = 'Seller'
+    
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related('meal', 'buyer', 'meal__seller')

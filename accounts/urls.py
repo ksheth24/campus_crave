@@ -22,6 +22,13 @@ urlpatterns = [
     path('meals/browse/', views.browse_meals, name='browse_meals'),
     path('meals/<int:meal_id>/', views.meal_detail, name='meal_detail'),
     
+    # Reservations/Orders
+    path('meals/<int:meal_id>/reserve/', views.create_reservation, name='create_reservation'),
+    path('orders/my/', views.my_orders, name='my_orders'),
+    path('orders/seller/', views.seller_orders, name='seller_orders'),
+    path('orders/<int:reservation_id>/update-status/', views.update_order_status, name='update_order_status'),
+    path('orders/<int:reservation_id>/cancel/', views.cancel_order, name='cancel_order'),
+    
     # API
     path('api/meals/', views.meals_api, name='meals_api'),
 ]

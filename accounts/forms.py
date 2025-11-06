@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import SellerVerificationApplication, Meal
+from .models import SellerVerificationApplication, Meal, Reservation
 
 
 class VerificationForm(forms.ModelForm):
@@ -65,4 +65,18 @@ class MealForm(forms.ModelForm):
         help_texts = {
             'pickup_location': 'Enter a descriptive location (e.g., "Main Library, 2nd Floor")',
             'price': 'Price in USD',
+        }
+
+
+class ReservationForm(forms.ModelForm):
+    class Meta:
+        model = Reservation
+        fields = ['quantity', 'buyer_phone', 'buyer_notes']
+        widgets = {
+            'buyer_notes': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Any special requests or dietary restrictions?'}),
+            'buyer_phone': forms.TextInput(attrs={'placeholder': 'Your phone number for pickup coordination'}),
+            'quantity': forms.NumberInput(attrs={'min': 1, 'value': 1}),
+        }
+        help_texts = {
+            'quantity': 'How many portions would you like to order?',
         }

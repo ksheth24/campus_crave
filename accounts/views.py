@@ -4,8 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.utils import timezone
-from .forms import VerificationForm, UserRegistrationForm, MealForm
-from .models import Meal, UserProfile, SellerVerificationApplication
+from .forms import VerificationForm, UserRegistrationForm, MealForm, ReservationForm
+from .models import Meal, UserProfile, SellerVerificationApplication, Reservation
 
 
 def home(request):
@@ -164,3 +164,98 @@ def meals_api(request):
         'photo_url': meal.photo.url if meal.photo else None,
     } for meal in meals]
     return JsonResponse({'meals': meals_data})
+
+
+@login_required
+def create_reservation(request, meal_id):
+    """Create a reservation for a meal."""
+    meal = get_object_or_404(Meal, id=meal_id)
+    
+    # Check if meal is available
+    if not meal.is_available:
+        messages.error(request, 'This meal is currently unavailable.')
+        return redirect('accounts:meal_detail', meal_id=meal_id)
+    
+    # Prevent sellers from ordering their own meals
+    if request.user == meal.seller:
+        messages.error(request, 'You cannot order your own meal.')
+        return redirect('accounts:meal_detail', meal_id=meal_id)
+    
+    if request.method == 'POST':
+        form = ReservationForm(request.POST)
+        if form.is_valid():
+            reservation = form.save(commit=False)
+            reservation.meal = meal
+            reservation.buyer = request.user
+            reservation.save()
+            messages.success(request, f'Your order has been placed! Order #{reservation.id}')
+            return redirect('accounts:my_orders')
+    else:
+        form = ReservationForm()
+    
+    return render(request, 'accounts/create_reservation.html', {
+        'form': form,
+        'meal': meal,
+    })
+
+
+@login_required
+def my_orders(request):
+    """View buyer's own orders."""
+    orders = Reservation.objects.filter(buyer=request.user).select_related('meal', 'meal__seller')
+    return render(request, 'accounts/my_orders.html', {'orders': orders})
+
+
+@login_required
+def seller_orders(request):
+    """View orders for seller's meals."""
+    # Check if user is verified seller
+    try:
+        if not request.user.profile.is_verified_seller:
+            messages.error(request, 'You must be a verified seller to view orders.')
+            return redirect('home')
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'You must be a verified seller to view orders.')
+        return redirect('home')
+    
+    # Get all reservations for the seller's meals
+    orders = Reservation.objects.filter(meal__seller=request.user).select_related('meal', 'buyer')
+    return render(request, 'accounts/seller_orders.html', {'orders': orders})
+
+
+@login_required
+def update_order_status(request, reservation_id):
+    """Update order status (seller only)."""
+    reservation = get_object_or_404(Reservation, id=reservation_id)
+    
+    # Only the seller can update order status
+    if request.user != reservation.meal.seller:
+        messages.error(request, 'You do not have permission to update this order.')
+        return redirect('accounts:seller_orders')
+    
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+        if new_status in dict(Reservation.STATUS_CHOICES):
+            reservation.status = new_status
+            reservation.save()
+            messages.success(request, f'Order #{reservation.id} status updated to {reservation.get_status_display()}')
+    
+    return redirect('accounts:seller_orders')
+
+
+@login_required
+def cancel_order(request, reservation_id):
+    """Cancel an order (buyer only)."""
+    reservation = get_object_or_404(Reservation, id=reservation_id, buyer=request.user)
+    
+    if reservation.status in ['completed', 'cancelled']:
+        messages.error(request, 'This order cannot be cancelled.')
+        return redirect('accounts:my_orders')
+    
+    if request.method == 'POST':
+        reservation.status = 'cancelled'
+        reservation.save()
+        messages.success(request, f'Order #{reservation.id} has been cancelled.')
+        return redirect('accounts:my_orders')
+    
+    return render(request, 'accounts/cancel_order_confirm.html', {'reservation': reservation})

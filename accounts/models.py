@@ -62,3 +62,39 @@ class Meal(models.Model):
     
     def __str__(self):
         return f"{self.title} by {self.seller.username} - ${self.price}"
+
+
+class Reservation(models.Model):
+    """Buyer's meal reservation/purchase order."""
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('confirmed', 'Confirmed by Seller'),
+        ('ready', 'Ready for Pickup'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    ]
+    
+    meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name='reservations')
+    buyer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reservations')
+    quantity = models.PositiveIntegerField(default=1)
+    total_price = models.DecimalField(max_digits=8, decimal_places=2)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    # Contact information
+    buyer_phone = models.CharField(max_length=20, blank=True, help_text="Contact number for pickup coordination")
+    buyer_notes = models.TextField(blank=True, help_text="Special requests or dietary restrictions")
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Order #{self.id} - {self.buyer.username} → {self.meal.title} ({self.status})"
+    
+    def save(self, *args, **kwargs):
+        # Calculate total price
+        self.total_price = self.meal.price * self.quantity
+        super().save(*args, **kwargs)

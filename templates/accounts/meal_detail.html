@@ -67,6 +67,14 @@
               <a href="{% url 'accounts:edit_meal' meal.id %}" class="btn btn-secondary" style="flex: 1; text-align: center;">Edit Listing</a>
               <a href="{% url 'accounts:delete_meal' meal.id %}" class="btn" style="flex: 1; text-align: center; background: #dc3545;">Delete</a>
             </div>
+          {% elif user.is_authenticated and meal.is_available %}
+            <a href="{% url 'accounts:create_reservation' meal.id %}" class="btn" style="width: 100%; text-align: center; font-size: 1.1rem; padding: 1rem;">
+              🛒 Reserve This Meal
+            </a>
+          {% elif not user.is_authenticated and meal.is_available %}
+            <a href="{% url 'accounts:login' %}" class="btn btn-secondary" style="width: 100%; text-align: center;">
+              Login to Reserve
+            </a>
           {% endif %}
         </div>
       </div>

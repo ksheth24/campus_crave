@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}My Orders - CampusCrave{% endblock %}
+
+{% block content %}
+  <div style="max-width: 1200px; margin: 0 auto;">
+    <h1 style="margin-bottom: 2rem; color: #333;">My Orders</h1>
+    
+    {% if orders %}
+      <div style="display: grid; gap: 1.5rem;">
+        {% for order in orders %}
+          <div class="card" style="background: white; border: 1px solid #e0e0e0;">
+            <div style="display: grid; grid-template-columns: auto 1fr auto; gap: 2rem; align-items: start;">
+              <!-- Meal Image -->
+              <div>
+                {% if order.meal.photo %}
+                  <img src="{{ order.meal.photo.url }}" alt="{{ order.meal.title }}" 
+                       style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;">
+                {% else %}
+                  <div style="width: 120px; height: 120px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem;">
+                    🍜
+                  </div>
+                {% endif %}
+              </div>
+              
+              <!-- Order Details -->
+              <div>
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                  <h2 style="margin: 0; color: #333; font-size: 1.3rem;">{{ order.meal.title }}</h2>
+                  {% if order.status == 'pending' %}
+                    <span style="background: #ffc107; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.85rem; font-weight: bold;">⏳ Pending</span>
+                  {% elif order.status == 'confirmed' %}
+                    <span style="background: #2196f3; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.85rem; font-weight: bold;">✓ Confirmed</span>
+                  {% elif order.status == 'ready' %}
+                    <span style="background: #4caf50; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.85rem; font-weight: bold;">🎉 Ready</span>
+                  {% elif order.status == 'completed' %}
+                    <span style="background: #9e9e9e; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.85rem; font-weight: bold;">✓ Completed</span>
+                  {% elif order.status == 'cancelled' %}
+                    <span style="background: #f44336; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.85rem; font-weight: bold;">✗ Cancelled</span>
+                  {% endif %}
+                </div>
+                
+                <p style="color: #666; margin: 0 0 1rem 0;">Order #{{ order.id }}</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1rem;">
+                  <div>
+                    <p style="color: #999; font-size: 0.85rem; margin: 0;">Seller</p>
+                    <p style="color: #333; font-weight: 500; margin: 0;">👨‍🍳 {{ order.meal.seller.username }}</p>
+                  </div>
+                  <div>
+                    <p style="color: #999; font-size: 0.85rem; margin: 0;">Quantity</p>
+                    <p style="color: #333; font-weight: 500; margin: 0;">{{ order.quantity }}x</p>
+                  </div>
+                  <div>
+                    <p style="color: #999; font-size: 0.85rem; margin: 0;">Pickup Location</p>
+                    <p style="color: #333; font-weight: 500; margin: 0;">📍 {{ order.meal.pickup_location }}</p>
+                  </div>
+                  <div>
+                    <p style="color: #999; font-size: 0.85rem; margin: 0;">Ordered On</p>
+                    <p style="color: #333; font-weight: 500; margin: 0;">{{ order.created_at|date:"M d, Y H:i" }}</p>
+                  </div>
+                </div>
+                
+                {% if order.buyer_phone %}
+                  <p style="color: #666; font-size: 0.9rem; margin: 0 0 0.5rem 0;">📞 {{ order.buyer_phone }}</p>
+                {% endif %}
+                
+                {% if order.buyer_notes %}
+                  <div style="background: #f8f9fa; padding: 0.75rem; border-radius: 4px; margin-top: 1rem;">
+                    <p style="color: #999; font-size: 0.85rem; margin: 0 0 0.25rem 0;">Your Notes:</p>
+                    <p style="color: #666; margin: 0; white-space: pre-wrap;">{{ order.buyer_notes }}</p>
+                  </div>
+                {% endif %}
+              </div>
+              
+              <!-- Order Total & Actions -->
+              <div style="text-align: right;">
+                <p style="color: #ff6b6b; font-size: 2rem; font-weight: bold; margin: 0 0 1rem 0;">${{ order.total_price }}</p>
+                
+                {% if order.status not in 'completed,cancelled' %}
+                  <a href="{% url 'accounts:cancel_order' order.id %}" 
+                     style="color: #dc3545; text-decoration: none; font-size: 0.9rem;">
+                    Cancel Order
+                  </a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="card" style="text-align: center; padding: 3rem;">
+        <p style="font-size: 3rem; margin: 0 0 1rem 0;">🍽️</p>
+        <h2 style="color: #666; margin: 0 0 1rem 0;">No Orders Yet</h2>
+        <p style="color: #999; margin: 0 0 2rem 0;">Browse meals to place your first order!</p>
+        <a href="{% url 'accounts:browse_meals' %}" class="btn">Browse Meals</a>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}
+
