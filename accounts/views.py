@@ -138,6 +138,22 @@ def delete_meal(request, meal_id):
     return render(request, 'accounts/delete_meal_confirm.html', {'meal': meal})
 
 
+@login_required
+def toggle_meal_availability(request, meal_id):
+    """Toggle meal availability (mark as sold/available)."""
+    meal = get_object_or_404(Meal, id=meal_id, seller=request.user)
+    
+    if request.method == 'POST':
+        meal.is_available = not meal.is_available
+        meal.save()
+        
+        status = "available" if meal.is_available else "sold"
+        messages.success(request, f'"{meal.title}" has been marked as {status}.')
+        return redirect('accounts:my_meals')
+    
+    return render(request, 'accounts/toggle_availability_confirm.html', {'meal': meal})
+
+
 def browse_meals(request):
     """Browse all available meals on an interactive map."""
     meals = Meal.objects.filter(is_available=True).select_related('seller')
