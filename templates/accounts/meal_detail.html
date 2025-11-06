@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ meal.title }} - CampusCrave{% endblock %}
+
+{% block extra_css %}
+<style>
+  #meal-map {
+    height: 300px;
+    border-radius: 8px;
+    margin-top: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <div style="max-width: 900px; margin: 0 auto;">
+    <a href="{% url 'accounts:browse_meals' %}" style="color: #666; text-decoration: none; display: inline-block; margin-bottom: 1rem;">
+      ← Back to Browse
+    </a>
+    
+    <div class="card">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        <div>
+          {% if meal.photo %}
+            <img src="{{ meal.photo.url }}" alt="{{ meal.title }}" 
+                 style="width: 100%; height: 400px; object-fit: cover; border-radius: 8px;">
+          {% else %}
+            <div style="width: 100%; height: 400px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 5rem;">
+              🍜
+            </div>
+          {% endif %}
+        </div>
+        
+        <div>
+          <h1 style="margin-bottom: 1rem; color: #333;">{{ meal.title }}</h1>
+          
+          <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
+            <p style="color: #ff6b6b; font-size: 2.5rem; font-weight: bold; margin: 0;">${{ meal.price }}</p>
+          </div>
+          
+          <div style="margin-bottom: 1.5rem;">
+            <h3 style="margin-bottom: 0.5rem; color: #666; font-size: 0.9rem; text-transform: uppercase;">Seller</h3>
+            <p style="font-size: 1.1rem;">👨‍🍳 {{ meal.seller.username }}</p>
+            {% if meal.seller.email %}
+              <p style="color: #666; font-size: 0.9rem;">📧 {{ meal.seller.email }}</p>
+            {% endif %}
+          </div>
+          
+          <div style="margin-bottom: 1.5rem;">
+            <h3 style="margin-bottom: 0.5rem; color: #666; font-size: 0.9rem; text-transform: uppercase;">Pickup Location</h3>
+            <p style="font-size: 1.1rem;">📍 {{ meal.pickup_location }}</p>
+          </div>
+          
+          <div style="margin-bottom: 1.5rem;">
+            <h3 style="margin-bottom: 0.5rem; color: #666; font-size: 0.9rem; text-transform: uppercase;">Availability</h3>
+            <p style="font-size: 1.1rem;">
+              {% if meal.is_available %}
+                <span style="color: #28a745; font-weight: bold;">✓ Available Now</span>
+              {% else %}
+                <span style="color: #dc3545; font-weight: bold;">✗ Currently Unavailable</span>
+              {% endif %}
+            </p>
+          </div>
+          
+          {% if user.is_authenticated and user == meal.seller %}
+            <div style="display: flex; gap: 1rem;">
+              <a href="{% url 'accounts:edit_meal' meal.id %}" class="btn btn-secondary" style="flex: 1; text-align: center;">Edit Listing</a>
+              <a href="{% url 'accounts:delete_meal' meal.id %}" class="btn" style="flex: 1; text-align: center; background: #dc3545;">Delete</a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e0e0e0;">
+        <h3 style="margin-bottom: 1rem;">Description</h3>
+        <p style="color: #666; line-height: 1.6; white-space: pre-wrap;">{{ meal.description }}</p>
+      </div>
+      
+      <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e0e0e0;">
+        <h3 style="margin-bottom: 1rem;">Ingredients</h3>
+        <p style="color: #666; line-height: 1.6; white-space: pre-wrap;">{{ meal.ingredients }}</p>
+      </div>
+      
+      <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e0e0e0;">
+        <h3 style="margin-bottom: 1rem;">Pickup Location on Map</h3>
+        <div id="meal-map"></div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Initialize map for meal location
+  const map = L.map('meal-map').setView([{{ meal.pickup_latitude }}, {{ meal.pickup_longitude }}], 15);
+  
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+  
+  // Add marker for meal location
+  const icon = L.divIcon({
+    className: 'custom-marker',
+    html: '<div style="background: #ff6b6b; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">🍜</div>',
+    iconSize: [40, 40],
+    iconAnchor: [20, 20]
+  });
+  
+  L.marker([{{ meal.pickup_latitude }}, {{ meal.pickup_longitude }}], { icon: icon })
+    .addTo(map)
+    .bindPopup('{{ meal.pickup_location }}')
+    .openPopup();
+</script>
+{% endblock %}

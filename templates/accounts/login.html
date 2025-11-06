@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - CampusCrave{% endblock %}
+
+{% block content %}
+  <div class="card" style="max-width: 500px; margin: 2rem auto;">
+    <h2 style="margin-bottom: 1.5rem;">Login to Your Account</h2>
+    
+    <form method="post">
+      {% csrf_token %}
+      
+      <div>
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required>
+      </div>
+      
+      <div>
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required>
+      </div>
+      
+      <button type="submit" class="btn" style="margin-top: 1.5rem; width: 100%;">Login</button>
+    </form>
+    
+    <p style="margin-top: 1rem; text-align: center;">
+      Don't have an account? <a href="{% url 'accounts:register' %}" style="color: #ff6b6b;">Sign Up</a>
+    </p>
+  </div>
+{% endblock %}

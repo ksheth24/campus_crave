@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Meal - CampusCrave{% endblock %}
+
+{% block content %}
+  <div class="card" style="max-width: 600px; margin: 2rem auto;">
+    <h2 style="margin-bottom: 1.5rem; color: #dc3545;">Delete Meal Listing</h2>
+    
+    <p style="margin-bottom: 1rem;">Are you sure you want to delete this meal listing?</p>
+    
+    <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+      <h3>{{ meal.title }}</h3>
+      <p style="color: #666; margin-top: 0.5rem;">${{ meal.price }} - {{ meal.pickup_location }}</p>
+    </div>
+    
+    <form method="post">
+      {% csrf_token %}
+      <div style="display: flex; gap: 1rem;">
+        <button type="submit" class="btn" style="flex: 1; background: #dc3545;">Yes, Delete</button>
+        <a href="{% url 'accounts:my_meals' %}" class="btn btn-secondary" style="flex: 1; text-align: center;">Cancel</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

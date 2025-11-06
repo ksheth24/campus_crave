@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+
+{% block title %}Browse Meals - CampusCrave{% endblock %}
+
+{% block extra_css %}
+<style>
+  #map {
+    height: 600px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .leaflet-popup-content {
+    margin: 0;
+    padding: 0;
+  }
+  .meal-popup {
+    min-width: 250px;
+  }
+  .meal-popup img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+  }
+  .meal-popup-content {
+    padding: 1rem;
+  }
+  .meal-popup h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+  }
+  .meal-popup .price {
+    color: #ff6b6b;
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+  .meal-popup .location {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+  }
+  .meal-popup .seller {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+  .meal-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+  .meal-card {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+    cursor: pointer;
+  }
+  .meal-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .meal-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+  }
+  .meal-card-content {
+    padding: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <h2 style="margin-bottom: 1.5rem;">Browse Nearby Meals</h2>
+  
+  <div class="card" style="padding: 0; overflow: hidden;">
+    <div id="map"></div>
+  </div>
+
+  <div id="meal-list" class="meal-list">
+    {% for meal in meals %}
+      <div class="meal-card" onclick="focusMeal({{ meal.pickup_latitude }}, {{ meal.pickup_longitude }}, {{ meal.id }})">
+        {% if meal.photo %}
+          <img src="{{ meal.photo.url }}" alt="{{ meal.title }}">
+        {% else %}
+          <div style="width: 100%; height: 180px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem;">
+            🍜
+          </div>
+        {% endif %}
+        <div class="meal-card-content">
+          <h3 style="margin-bottom: 0.5rem;">{{ meal.title }}</h3>
+          <p class="price" style="color: #ff6b6b; font-size: 1.3rem; font-weight: bold; margin-bottom: 0.5rem;">${{ meal.price }}</p>
+          <p style="color: #666; font-size: 0.9rem; margin-bottom: 0.3rem;">📍 {{ meal.pickup_location }}</p>
+          <p style="color: #666; font-size: 0.9rem;">👨‍🍳 {{ meal.seller.username }}</p>
+          <a href="{% url 'accounts:meal_detail' meal.id %}" class="btn" style="width: 100%; text-align: center; margin-top: 1rem;">View Details</a>
+        </div>
+      </div>
+    {% empty %}
+      <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
+        <p style="color: #666; font-size: 1.1rem;">No meals available at the moment. Check back soon!</p>
+      </div>
+    {% endfor %}
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Initialize map centered on a default location
+  const map = L.map('map').setView([40.7128, -74.0060], 13);
+  
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 19
+  }).addTo(map);
+  
+  // Store markers for later reference
+  const markers = {};
+  
+  // Fetch meals data and add markers
+  fetch('{% url "accounts:meals_api" %}')
+    .then(response => response.json())
+    .then(data => {
+      const meals = data.meals;
+      
+      if (meals.length === 0) {
+        return;
+      }
+      
+      // Create bounds to fit all markers
+      const bounds = [];
+      
+      meals.forEach(meal => {
+        const lat = meal.latitude;
+        const lng = meal.longitude;
+        bounds.push([lat, lng]);
+        
+        // Create custom icon
+        const icon = L.divIcon({
+          className: 'custom-marker',
+          html: '<div style="background: #ff6b6b; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">🍜</div>',
+          iconSize: [40, 40],
+          iconAnchor: [20, 20]
+        });
+        
+        // Create marker
+        const marker = L.marker([lat, lng], { icon: icon }).addTo(map);
+        markers[meal.id] = marker;
+        
+        // Create popup content
+        const popupContent = `
+          <div class="meal-popup">
+            ${meal.photo_url ? `<img src="${meal.photo_url}" alt="${meal.title}">` : '<div style="width: 100%; height: 150px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem;">🍜</div>'}
+            <div class="meal-popup-content">
+              <h3>${meal.title}</h3>
+              <div class="price">$${meal.price}</div>
+              <div class="location">📍 ${meal.pickup_location}</div>
+              <div class="seller">👨‍🍳 ${meal.seller}</div>
+              <a href="/accounts/meals/${meal.id}/" class="btn" style="width: 100%; text-align: center;">View Details</a>
+            </div>
+          </div>
+        `;
+        
+        marker.bindPopup(popupContent, {
+          maxWidth: 300,
+          className: 'meal-marker-popup'
+        });
+      });
+      
+      // Fit map to show all markers
+      if (bounds.length > 0) {
+        map.fitBounds(bounds, { padding: [50, 50] });
+      }
+    })
+    .catch(error => {
+      console.error('Error loading meals:', error);
+    });
+  
+  // Function to focus on a specific meal
+  function focusMeal(lat, lng, mealId) {
+    map.setView([lat, lng], 16);
+    if (markers[mealId]) {
+      markers[mealId].openPopup();
+    }
+  }
+  
+  // Try to get user's location
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function(position) {
+        const userLat = position.coords.latitude;
+        const userLng = position.coords.longitude;
+        
+        // Add user location marker
+        const userIcon = L.divIcon({
+          className: 'user-marker',
+          html: '<div style="background: #4ecdc4; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">📍</div>',
+          iconSize: [30, 30],
+          iconAnchor: [15, 15]
+        });
+        
+        L.marker([userLat, userLng], { icon: userIcon })
+          .addTo(map)
+          .bindPopup('You are here');
+        
+        // Center map on user location if no meals
+        fetch('{% url "accounts:meals_api" %}')
+          .then(response => response.json())
+          .then(data => {
+            if (data.meals.length === 0) {
+              map.setView([userLat, userLng], 13);
+            }
+          });
+      },
+      function(error) {
+        console.log('Geolocation error:', error);
+      }
+    );
+  }
+</script>
+{% endblock %}
