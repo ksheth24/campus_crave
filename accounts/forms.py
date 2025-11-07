@@ -55,7 +55,7 @@ class MealForm(forms.ModelForm):
     class Meta:
         model = Meal
         fields = ['title', 'description', 'ingredients', 'photo', 'price', 
-                  'pickup_location', 'pickup_latitude', 'pickup_longitude', 'is_available']
+                  'pickup_location', 'pickup_latitude', 'pickup_longitude']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
             'ingredients': forms.Textarea(attrs={'rows': 3}),
@@ -66,6 +66,16 @@ class MealForm(forms.ModelForm):
             'pickup_location': 'Enter a descriptive location (e.g., "Main Library, 2nd Floor")',
             'price': 'Price in USD',
         }
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        pickup_latitude = cleaned_data.get('pickup_latitude')
+        pickup_longitude = cleaned_data.get('pickup_longitude')
+        
+        if not pickup_latitude or not pickup_longitude:
+            raise forms.ValidationError('Please click on the map to set a pickup location.')
+        
+        return cleaned_data
 
 
 class ReservationForm(forms.ModelForm):

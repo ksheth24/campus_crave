@@ -44,7 +44,7 @@ class Meal(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     ingredients = models.TextField(help_text="List main ingredients")
-    photo = models.ImageField(upload_to='meals/')
+    photo = models.ImageField(upload_to='meals/', blank=True, null=True)
     price = models.DecimalField(max_digits=6, decimal_places=2)
     
     # Pickup location
