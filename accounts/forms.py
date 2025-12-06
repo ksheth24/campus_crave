@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import SellerVerificationApplication, Meal, Reservation
+from .models import SellerVerificationApplication, Meal, Reservation, Review
 
 
 class VerificationForm(forms.ModelForm):
@@ -90,3 +90,20 @@ class ReservationForm(forms.ModelForm):
         help_texts = {
             'quantity': 'How many portions would you like to order?',
         }
+
+
+class ReviewForm(forms.ModelForm):
+    rating = forms.IntegerField(
+        min_value=1,
+        max_value=5,
+        widget=forms.NumberInput(attrs={'min': 1, 'max': 5, 'style': 'width: 80px;'}),
+        help_text='Rate from 1 (poor) to 5 (excellent).'
+    )
+    comment = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'rows': 3, 'placeholder': 'How was the pickup and meal quality?'}),
+    )
+
+    class Meta:
+        model = Review
+        fields = ['rating', 'comment']

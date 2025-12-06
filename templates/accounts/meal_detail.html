@@ -37,6 +37,17 @@
           <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
             <p style="color: #ff6b6b; font-size: 2.5rem; font-weight: bold; margin: 0;">${{ meal.price }}</p>
           </div>
+
+          <div style="margin-bottom: 1.5rem; background: #fff8e6; padding: 1rem; border-radius: 8px; border: 1px solid #ffe0b3;">
+            <h3 style="margin: 0 0 0.25rem 0; color: #8a6d3b; font-size: 0.95rem; text-transform: uppercase;">Seller Rating</h3>
+            {% if rating_summary.count %}
+              <p style="margin: 0; font-size: 1.1rem; color: #8a6d3b;">
+                ⭐ {{ rating_summary.average|floatformat:1 }} / 5 • {{ rating_summary.count }} review{{ rating_summary.count|pluralize }}
+              </p>
+            {% else %}
+              <p style="margin: 0; color: #8a6d3b;">No reviews yet. Be the first to rate after pickup!</p>
+            {% endif %}
+          </div>
           
           <div style="margin-bottom: 1.5rem;">
             <h3 style="margin-bottom: 0.5rem; color: #666; font-size: 0.9rem; text-transform: uppercase;">Seller</h3>
@@ -98,6 +109,26 @@
       <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e0e0e0;">
         <h3 style="margin-bottom: 1rem;">Ingredients</h3>
         <p style="color: #666; line-height: 1.6; white-space: pre-wrap;">{{ meal.ingredients }}</p>
+      </div>
+      
+      <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e0e0e0;">
+        <h3 style="margin-bottom: 1rem;">Recent Reviews</h3>
+        {% if reviews %}
+          <div style="display: grid; gap: 1rem;">
+            {% for review in reviews %}
+              <div style="border: 1px solid #f0f0f0; border-radius: 8px; padding: 1rem; background: #fcfcfc;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                  <p style="margin: 0; font-weight: bold; color: #ff9800;">⭐ {{ review.rating }}/5</p>
+                  <p style="margin: 0; color: #999; font-size: 0.85rem;">{{ review.created_at|date:"M d, Y" }}</p>
+                </div>
+                <p style="color: #666; margin: 0 0 0.5rem 0; white-space: pre-wrap;">{% if review.comment %}{{ review.comment }}{% else %}<span style="color: #aaa;">No written review.</span>{% endif %}</p>
+                <p style="margin: 0; color: #555; font-size: 0.9rem;">by {{ review.buyer.username }}</p>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p style="color: #666;">No reviews yet. Completed buyers will be able to rate this meal.</p>
+        {% endif %}
       </div>
       
       <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e0e0e0;">

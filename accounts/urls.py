@@ -29,6 +29,7 @@ urlpatterns = [
     path('orders/seller/', views.seller_orders, name='seller_orders'),
     path('orders/<int:reservation_id>/update-status/', views.update_order_status, name='update_order_status'),
     path('orders/<int:reservation_id>/cancel/', views.cancel_order, name='cancel_order'),
+    path('orders/<int:reservation_id>/review/', views.leave_review, name='leave_review'),
     
     # API
     path('api/meals/', views.meals_api, name='meals_api'),

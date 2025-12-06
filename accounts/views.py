@@ -4,8 +4,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.utils import timezone
-from .forms import VerificationForm, UserRegistrationForm, MealForm, ReservationForm
-from .models import Meal, UserProfile, SellerVerificationApplication, Reservation
+from django.db.models import Avg, Count
+from .forms import VerificationForm, UserRegistrationForm, MealForm, ReservationForm, ReviewForm
+from .models import Meal, UserProfile, SellerVerificationApplication, Reservation, Review
 
 
 def home(request):
@@ -163,7 +164,16 @@ def browse_meals(request):
 def meal_detail(request, meal_id):
     """View details of a specific meal."""
     meal = get_object_or_404(Meal, id=meal_id)
-    return render(request, 'accounts/meal_detail.html', {'meal': meal})
+    reviews = meal.reviews.select_related('buyer').all()
+    rating_summary = meal.reviews.aggregate(
+        average=Avg('rating'),
+        count=Count('id')
+    )
+    return render(request, 'accounts/meal_detail.html', {
+        'meal': meal,
+        'reviews': reviews,
+        'rating_summary': rating_summary,
+    })
 
 
 def meals_api(request):
@@ -218,7 +228,7 @@ def create_reservation(request, meal_id):
 @login_required
 def my_orders(request):
     """View buyer's own orders."""
-    orders = Reservation.objects.filter(buyer=request.user).select_related('meal', 'meal__seller')
+    orders = Reservation.objects.filter(buyer=request.user).select_related('meal', 'meal__seller', 'review')
     return render(request, 'accounts/my_orders.html', {'orders': orders})
 
 
@@ -237,6 +247,39 @@ def seller_orders(request):
     # Get all reservations for the seller's meals
     orders = Reservation.objects.filter(meal__seller=request.user).select_related('meal', 'buyer')
     return render(request, 'accounts/seller_orders.html', {'orders': orders})
+
+
+@login_required
+def leave_review(request, reservation_id):
+    """Allow buyers to leave a rating and review after pickup is completed."""
+    reservation = get_object_or_404(Reservation, id=reservation_id, buyer=request.user)
+
+    if reservation.status != 'completed':
+        messages.error(request, 'You can only leave a review after pickup is completed.')
+        return redirect('accounts:my_orders')
+
+    if hasattr(reservation, 'review'):
+        messages.info(request, 'You already left feedback for this order.')
+        return redirect('accounts:my_orders')
+
+    if request.method == 'POST':
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.reservation = reservation
+            review.meal = reservation.meal
+            review.seller = reservation.meal.seller
+            review.buyer = request.user
+            review.save()
+            messages.success(request, 'Thanks for rating your pickup!')
+            return redirect('accounts:my_orders')
+    else:
+        form = ReviewForm()
+
+    return render(request, 'accounts/leave_review.html', {
+        'form': form,
+        'reservation': reservation,
+    })
 
 
 @login_required

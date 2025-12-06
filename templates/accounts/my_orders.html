@@ -85,6 +85,39 @@
                 {% endif %}
               </div>
             </div>
+
+            {% if order.status == 'completed' %}
+              <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #f0f0f0;">
+                {% if order.review %}
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <p style="margin: 0; font-weight: bold; color: #ff9800;">⭐ {{ order.review.rating }}/5</p>
+                    <p style="margin: 0; color: #999; font-size: 0.85rem;">Reviewed {{ order.review.created_at|date:"M d, Y" }}</p>
+                  </div>
+                  <p style="margin: 0 0 0.5rem 0; color: #555; white-space: pre-wrap;">{% if order.review.comment %}{{ order.review.comment }}{% else %}<span style="color: #aaa;">No written review.</span>{% endif %}</p>
+                  <p style="margin: 0; color: #888; font-size: 0.9rem;">Visible on the listing for {{ order.meal.title }}.</p>
+                {% else %}
+                  <form method="post" action="{% url 'accounts:leave_review' order.id %}">
+                    {% csrf_token %}
+                    <div style="display: grid; grid-template-columns: auto 1fr; gap: 0.75rem; align-items: start;">
+                      <div>
+                        <label for="rating-{{ order.id }}" style="font-weight: bold; color: #333; font-size: 0.9rem;">Rating</label><br>
+                        <select id="rating-{{ order.id }}" name="rating" required style="padding: 0.35rem; border: 1px solid #ddd; border-radius: 4px;">
+                          {% for value in '12345' %}
+                            <option value="{{ value }}">{{ value }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                      <div>
+                        <label for="comment-{{ order.id }}" style="font-weight: bold; color: #333; font-size: 0.9rem;">Review</label>
+                        <textarea id="comment-{{ order.id }}" name="comment" rows="2" placeholder="How was the pickup and meal quality?" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;"></textarea>
+                      </div>
+                    </div>
+                    <p style="color: #888; font-size: 0.85rem; margin: 0.5rem 0;">You can submit one review per completed order.</p>
+                    <button type="submit" class="btn" style="padding: 0.5rem 1rem;">Submit Review</button>
+                  </form>
+                {% endif %}
+              </div>
+            {% endif %}
           </div>
         {% endfor %}
       </div>
@@ -98,4 +131,3 @@
     {% endif %}
   </div>
 {% endblock %}
-

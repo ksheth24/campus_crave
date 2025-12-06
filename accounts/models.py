@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class SellerVerificationApplication(models.Model):
@@ -98,3 +99,20 @@ class Reservation(models.Model):
         # Calculate total price
         self.total_price = self.meal.price * self.quantity
         super().save(*args, **kwargs)
+
+
+class Review(models.Model):
+    """Buyer feedback left after pickup for a specific reservation."""
+    reservation = models.OneToOneField(Reservation, on_delete=models.CASCADE, related_name='review')
+    meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name='reviews')
+    seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_reviews')
+    buyer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='written_reviews')
+    rating = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    comment = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Review {self.rating}/5 by {self.buyer.username} for {self.meal.title}"
