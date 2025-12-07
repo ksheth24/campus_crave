@@ -54,7 +54,7 @@ class UserRegistrationForm(UserCreationForm):
 class MealForm(forms.ModelForm):
     class Meta:
         model = Meal
-        fields = ['title', 'description', 'ingredients', 'photo', 'price', 
+        fields = ['title', 'description', 'ingredients', 'photo', 'price', 'dietary_tags',
                   'pickup_location', 'pickup_latitude', 'pickup_longitude']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
@@ -65,6 +65,7 @@ class MealForm(forms.ModelForm):
         help_texts = {
             'pickup_location': 'Enter a descriptive location (e.g., "Main Library, 2nd Floor")',
             'price': 'Price in USD',
+            'dietary_tags': 'Select the dietary category that best describes this meal',
         }
     
     def clean(self):
@@ -107,3 +108,39 @@ class ReviewForm(forms.ModelForm):
     class Meta:
         model = Review
         fields = ['rating', 'comment']
+
+
+class MealFilterForm(forms.Form):
+    """Form for filtering meals by dietary preferences and price range."""
+    dietary_tags = forms.ChoiceField(
+        choices=[('', 'All Dietary Options')] + Meal.DIETARY_CHOICES,
+        required=False,
+        widget=forms.Select(attrs={'class': 'filter-select'}),
+        label='Dietary Preference'
+    )
+    min_price = forms.DecimalField(
+        required=False,
+        min_value=0,
+        max_digits=6,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={'placeholder': 'Min', 'step': '0.01'}),
+        label='Min Price ($)'
+    )
+    max_price = forms.DecimalField(
+        required=False,
+        min_value=0,
+        max_digits=6,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={'placeholder': 'Max', 'step': '0.01'}),
+        label='Max Price ($)'
+    )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        min_price = cleaned_data.get('min_price')
+        max_price = cleaned_data.get('max_price')
+        
+        if min_price and max_price and min_price > max_price:
+            raise forms.ValidationError('Minimum price cannot be greater than maximum price.')
+        
+        return cleaned_data

@@ -49,6 +49,13 @@
             {% endif %}
           </div>
           
+          {% if meal.dietary_tags != 'none' %}
+          <div style="margin-bottom: 1.5rem;">
+            <h3 style="margin-bottom: 0.5rem; color: #666; font-size: 0.9rem; text-transform: uppercase;">Dietary Category</h3>
+            <p style="font-size: 1.1rem; color: #4ecdc4; font-weight: 500;">🥗 {{ meal.get_dietary_tags_display }}</p>
+          </div>
+          {% endif %}
+          
           <div style="margin-bottom: 1.5rem;">
             <h3 style="margin-bottom: 0.5rem; color: #666; font-size: 0.9rem; text-transform: uppercase;">Seller</h3>
             <p style="font-size: 1.1rem;">👨‍🍳 {{ meal.seller.username }}</p>
@@ -80,14 +87,17 @@
                 <a href="{% url 'accounts:delete_meal' meal.id %}" class="btn" style="flex: 1; text-align: center; background: #dc3545;">Delete</a>
               </div>
               
-              <a href="{% url 'accounts:toggle_meal_availability' meal.id %}" class="btn" 
-                 style="text-align: center; background: {% if meal.is_available %}#ffc107{% else %}#28a745{% endif %};">
-                {% if meal.is_available %}
+              {% if meal.is_available %}
+                <a href="{% url 'accounts:toggle_meal_availability' meal.id %}" class="btn" 
+                   style="text-align: center; background: #ffc107;">
                   Mark as Sold
-                {% else %}
+                </a>
+              {% else %}
+                <a href="{% url 'accounts:toggle_meal_availability' meal.id %}" class="btn" 
+                   style="text-align: center; background: #28a745;">
                   Mark as Available
-                {% endif %}
-              </a>
+                </a>
+              {% endif %}
             </div>
           {% elif user.is_authenticated and meal.is_available %}
             <a href="{% url 'accounts:create_reservation' meal.id %}" class="btn" style="width: 100%; text-align: center; font-size: 1.1rem; padding: 1rem;">
@@ -133,7 +143,10 @@
       
       <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e0e0e0;">
         <h3 style="margin-bottom: 1rem;">Pickup Location on Map</h3>
-        <div id="meal-map"></div>
+        <div id="meal-map" 
+             data-lat="{{ meal.pickup_latitude }}" 
+             data-lng="{{ meal.pickup_longitude }}" 
+             data-location="{{ meal.pickup_location }}"></div>
       </div>
     </div>
   </div>
@@ -141,24 +154,32 @@
 
 {% block extra_js %}
 <script>
+  // Get meal location data from data attributes
+  var mapElement = document.getElementById('meal-map');
+  var mealLat = parseFloat(mapElement.dataset.lat);
+  var mealLng = parseFloat(mapElement.dataset.lng);
+  var mealLocation = mapElement.dataset.location;
+  
   // Initialize map for meal location
-  const map = L.map('meal-map').setView([{{ meal.pickup_latitude }}, {{ meal.pickup_longitude }}], 15);
+  var map = L.map('meal-map').setView([mealLat, mealLng], 15);
   
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
   }).addTo(map);
   
   // Add marker for meal location
-  const icon = L.divIcon({
+  var markerHtml = '<div style="background: #ff6b6b; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">🍜</div>';
+  
+  var icon = L.divIcon({
     className: 'custom-marker',
-    html: '<div style="background: #ff6b6b; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">🍜</div>',
+    html: markerHtml,
     iconSize: [40, 40],
     iconAnchor: [20, 20]
   });
   
-  L.marker([{{ meal.pickup_latitude }}, {{ meal.pickup_longitude }}], { icon: icon })
+  L.marker([mealLat, mealLng], { icon: icon })
     .addTo(map)
-    .bindPopup('{{ meal.pickup_location }}')
+    .bindPopup(mealLocation)
     .openPopup();
 </script>
 {% endblock %}

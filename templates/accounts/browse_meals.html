@@ -70,11 +70,72 @@
   .meal-card-content {
     padding: 1rem;
   }
+  .filter-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+  }
+  .filter-form {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 1rem;
+    align-items: end;
+  }
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+  }
+  .filter-results {
+    margin-top: 1rem;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: #666;
+  }
+  @media (max-width: 768px) {
+    .filter-form {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
 {% endblock %}
 
 {% block content %}
   <h2 style="margin-bottom: 1.5rem;">Browse Nearby Meals</h2>
+  
+  <!-- Filter Section -->
+  <div class="filter-section">
+    <h3 style="margin-bottom: 1rem;">🔍 Filter Meals</h3>
+    <form method="get" class="filter-form" id="filter-form">
+      <div class="filter-group">
+        {{ filter_form.dietary_tags.label_tag }}
+        {{ filter_form.dietary_tags }}
+      </div>
+      <div class="filter-group">
+        {{ filter_form.min_price.label_tag }}
+        {{ filter_form.min_price }}
+      </div>
+      <div class="filter-group">
+        {{ filter_form.max_price.label_tag }}
+        {{ filter_form.max_price }}
+      </div>
+      <div class="filter-group">
+        <label>&nbsp;</label>
+        <button type="submit" class="btn">Apply Filters</button>
+      </div>
+    </form>
+    {% if filter_form.errors %}
+      <div class="alert alert-error" style="margin-top: 1rem;">
+        {{ filter_form.errors }}
+      </div>
+    {% endif %}
+    <div class="filter-results">
+      Showing {{ meals.count }} meal{{ meals.count|pluralize }}
+    </div>
+  </div>
   
   <div class="card" style="padding: 0; overflow: hidden;">
     <div id="map"></div>
@@ -82,7 +143,7 @@
 
   <div id="meal-list" class="meal-list">
     {% for meal in meals %}
-      <div class="meal-card" onclick="focusMeal({{ meal.pickup_latitude }}, {{ meal.pickup_longitude }}, {{ meal.id }})">
+      <div class="meal-card" data-meal-id="{{ meal.id }}" data-lat="{{ meal.pickup_latitude }}" data-lng="{{ meal.pickup_longitude }}">
         {% if meal.photo %}
           <img src="{{ meal.photo.url }}" alt="{{ meal.title }}">
         {% else %}
@@ -93,6 +154,9 @@
         <div class="meal-card-content">
           <h3 style="margin-bottom: 0.5rem;">{{ meal.title }}</h3>
           <p class="price" style="color: #ff6b6b; font-size: 1.3rem; font-weight: bold; margin-bottom: 0.5rem;">${{ meal.price }}</p>
+          {% if meal.dietary_tags != 'none' %}
+            <p style="color: #4ecdc4; font-size: 0.85rem; margin-bottom: 0.5rem; font-weight: 500;">🥗 {{ meal.get_dietary_tags_display }}</p>
+          {% endif %}
           <p style="color: #666; font-size: 0.9rem; margin-bottom: 0.3rem;">📍 {{ meal.pickup_location }}</p>
           <p style="color: #666; font-size: 0.9rem;">👨‍🍳 {{ meal.seller.username }}</p>
           <a href="{% url 'accounts:meal_detail' meal.id %}" class="btn" style="width: 100%; text-align: center; margin-top: 1rem;">View Details</a>
@@ -119,10 +183,22 @@
   // Store markers for later reference
   const markers = {};
   
-  // Fetch meals data and add markers
-  fetch('{% url "accounts:meals_api" %}')
-    .then(response => response.json())
-    .then(data => {
+  // Function to build API URL with filters
+  function buildApiUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return '{% url "accounts:meals_api" %}?' + params.toString();
+  }
+  
+  // Function to load meals with current filters
+  function loadMeals() {
+    // Clear existing markers
+    Object.values(markers).forEach(marker => map.removeLayer(marker));
+    Object.keys(markers).forEach(key => delete markers[key]);
+    
+    // Fetch meals data and add markers
+    fetch(buildApiUrl())
+      .then(response => response.json())
+      .then(data => {
       const meals = data.meals;
       
       if (meals.length === 0) {
@@ -174,9 +250,13 @@
         map.fitBounds(bounds, { padding: [50, 50] });
       }
     })
-    .catch(error => {
-      console.error('Error loading meals:', error);
-    });
+      .catch(error => {
+        console.error('Error loading meals:', error);
+      });
+  }
+  
+  // Initial load
+  loadMeals();
   
   // Function to focus on a specific meal
   function focusMeal(lat, lng, mealId) {
@@ -185,6 +265,22 @@
       markers[mealId].openPopup();
     }
   }
+  
+  // Add click handlers to meal cards
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.meal-card').forEach(function(card) {
+      card.addEventListener('click', function(e) {
+        // Don't trigger if clicking the "View Details" button
+        if (e.target.classList.contains('btn') || e.target.closest('.btn')) {
+          return;
+        }
+        const lat = parseFloat(this.dataset.lat);
+        const lng = parseFloat(this.dataset.lng);
+        const mealId = parseInt(this.dataset.mealId);
+        focusMeal(lat, lng, mealId);
+      });
+    });
+  });
   
   // Try to get user's location
   if (navigator.geolocation) {
@@ -206,7 +302,7 @@
           .bindPopup('You are here');
         
         // Center map on user location if no meals
-        fetch('{% url "accounts:meals_api" %}')
+        fetch(buildApiUrl())
           .then(response => response.json())
           .then(data => {
             if (data.meals.length === 0) {

@@ -41,12 +41,31 @@ class UserProfile(models.Model):
 
 class Meal(models.Model):
     """Meal listing created by verified sellers."""
+    DIETARY_CHOICES = [
+        ('vegetarian', 'Vegetarian'),
+        ('vegan', 'Vegan'),
+        ('gluten_free', 'Gluten-Free'),
+        ('dairy_free', 'Dairy-Free'),
+        ('halal', 'Halal'),
+        ('kosher', 'Kosher'),
+        ('nut_free', 'Nut-Free'),
+        ('none', 'No Restrictions'),
+    ]
+    
     seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='meals')
     title = models.CharField(max_length=200)
     description = models.TextField()
     ingredients = models.TextField(help_text="List main ingredients")
     photo = models.ImageField(upload_to='meals/', blank=True, null=True)
     price = models.DecimalField(max_digits=6, decimal_places=2)
+    
+    # Dietary preferences
+    dietary_tags = models.CharField(
+        max_length=100, 
+        choices=DIETARY_CHOICES, 
+        default='none',
+        help_text="Select the primary dietary category for this meal"
+    )
     
     # Pickup location
     pickup_location = models.CharField(max_length=300)

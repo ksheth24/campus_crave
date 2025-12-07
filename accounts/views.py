@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.utils import timezone
 from django.db.models import Avg, Count
-from .forms import VerificationForm, UserRegistrationForm, MealForm, ReservationForm, ReviewForm
+from .forms import VerificationForm, UserRegistrationForm, MealForm, ReservationForm, ReviewForm, MealFilterForm
 from .models import Meal, UserProfile, SellerVerificationApplication, Reservation, Review
 
 
@@ -156,9 +156,27 @@ def toggle_meal_availability(request, meal_id):
 
 
 def browse_meals(request):
-    """Browse all available meals on an interactive map."""
+    """Browse all available meals on an interactive map with filtering."""
     meals = Meal.objects.filter(is_available=True).select_related('seller')
-    return render(request, 'accounts/browse_meals.html', {'meals': meals})
+    
+    # Apply filters
+    filter_form = MealFilterForm(request.GET or None)
+    if filter_form.is_valid():
+        dietary_tags = filter_form.cleaned_data.get('dietary_tags')
+        min_price = filter_form.cleaned_data.get('min_price')
+        max_price = filter_form.cleaned_data.get('max_price')
+        
+        if dietary_tags:
+            meals = meals.filter(dietary_tags=dietary_tags)
+        if min_price is not None:
+            meals = meals.filter(price__gte=min_price)
+        if max_price is not None:
+            meals = meals.filter(price__lte=max_price)
+    
+    return render(request, 'accounts/browse_meals.html', {
+        'meals': meals,
+        'filter_form': filter_form,
+    })
 
 
 def meal_detail(request, meal_id):
@@ -177,12 +195,32 @@ def meal_detail(request, meal_id):
 
 
 def meals_api(request):
-    """API endpoint to get all available meals as JSON for map markers."""
+    """API endpoint to get all available meals as JSON for map markers with filtering."""
     meals = Meal.objects.filter(is_available=True).select_related('seller')
+    
+    # Apply filters from query parameters
+    dietary_tags = request.GET.get('dietary_tags')
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    
+    if dietary_tags:
+        meals = meals.filter(dietary_tags=dietary_tags)
+    if min_price:
+        try:
+            meals = meals.filter(price__gte=float(min_price))
+        except ValueError:
+            pass
+    if max_price:
+        try:
+            meals = meals.filter(price__lte=float(max_price))
+        except ValueError:
+            pass
+    
     meals_data = [{
         'id': meal.id,
         'title': meal.title,
         'price': str(meal.price),
+        'dietary_tags': meal.get_dietary_tags_display(),
         'pickup_location': meal.pickup_location,
         'latitude': meal.pickup_latitude,
         'longitude': meal.pickup_longitude,

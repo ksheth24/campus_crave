@@ -152,8 +152,8 @@ class UserProfileAdmin(admin.ModelAdmin):
 
 @admin.register(Meal)
 class MealAdmin(admin.ModelAdmin):
-    list_display = ['title', 'seller', 'price', 'pickup_location', 'is_available', 'created_at']
-    list_filter = ['is_available', 'created_at']
+    list_display = ['title', 'seller', 'price', 'dietary_tags', 'pickup_location', 'is_available', 'created_at']
+    list_filter = ['is_available', 'dietary_tags', 'created_at']
     search_fields = ['title', 'seller__username', 'pickup_location']
     readonly_fields = ['created_at', 'updated_at']
 
