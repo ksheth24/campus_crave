@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="card">
+    <h2>Seller Verification Application</h2>
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      <p>
+        {{ form.full_name.label_tag }}<br>
+        {{ form.full_name }}
+      </p>
+      <p>
+        {{ form.email.label_tag }}<br>
+        {{ form.email }}
+      </p>
+      <p>
+        {{ form.student_id_number.label_tag }}<br>
+        {{ form.student_id_number }}
+      </p>
+      <p>
+        {{ form.student_id_file.label_tag }}<br>
+        {{ form.student_id_file }}
+      </p>
+      <p>
+        {{ form.agree_meal_safety }} {{ form.agree_meal_safety.label_tag }}
+      </p>
+      <p><button type="submit">Submit Application</button></p>
+    </form>
+  </div>
+{% endblock %}

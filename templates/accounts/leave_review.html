@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Leave a Review - CampusCrave{% endblock %}
+
+{% block content %}
+  <div style="max-width: 700px; margin: 0 auto;">
+    <a href="{% url 'accounts:my_orders' %}" style="color: #666; text-decoration: none; display: inline-block; margin-bottom: 1rem;">
+      ← Back to My Orders
+    </a>
+
+    <div class="card" style="padding: 2rem;">
+      <h1 style="margin-bottom: 0.5rem; color: #333;">Rate Your Pickup</h1>
+      <p style="margin: 0 0 1.5rem 0; color: #666;">Order #{{ reservation.id }} • {{ reservation.meal.title }}</p>
+
+      <form method="post" style="display: grid; gap: 1rem;">
+        {% csrf_token %}
+        <div>
+          <label for="{{ form.rating.id_for_label }}" style="display: block; font-weight: bold; color: #333; margin-bottom: 0.35rem;">Rating (1-5)</label>
+          {{ form.rating }}
+          {% if form.rating.errors %}
+            <div style="color: #dc3545; font-size: 0.9rem;">{{ form.rating.errors|striptags }}</div>
+          {% endif %}
+          {% if form.rating.help_text %}
+            <p style="color: #888; font-size: 0.9rem; margin: 0.35rem 0 0 0;">{{ form.rating.help_text }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ form.comment.id_for_label }}" style="display: block; font-weight: bold; color: #333; margin-bottom: 0.35rem;">Review</label>
+          {{ form.comment }}
+          {% if form.comment.errors %}
+            <div style="color: #dc3545; font-size: 0.9rem;">{{ form.comment.errors|striptags }}</div>
+          {% endif %}
+          <p style="color: #888; font-size: 0.9rem; margin: 0.35rem 0 0 0;">Share pickup experience, punctuality, and meal quality.</p>
+        </div>
+
+        <button type="submit" class="btn" style="width: fit-content; padding: 0.75rem 1.5rem;">Submit Review</button>
+      </form>
+    </div>
+  </div>
+{% endblock %}

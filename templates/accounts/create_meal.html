@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Meal Listing - CampusCrave{% endblock %}
+
+{% block content %}
+  <div class="card" style="max-width: 800px; margin: 2rem auto;">
+    <h2 style="margin-bottom: 1.5rem;">Create New Meal Listing</h2>
+    
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      
+      {% for field in form %}
+        {% if field.name != 'pickup_latitude' and field.name != 'pickup_longitude' %}
+          <div>
+            {{ field.label_tag }}
+            {{ field }}
+            {% if field.errors %}
+              <ul class="errorlist">
+                {% for error in field.errors %}
+                  <li>{{ error }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+            {% if field.help_text %}
+              <p class="helptext">{{ field.help_text }}</p>
+            {% endif %}
+          </div>
+        {% else %}
+          {{ field }}
+        {% endif %}
+      {% endfor %}
+      
+      <div style="margin-top: 1rem;">
+        <label>Click on the map to set pickup location:</label>
+        <div id="map" style="height: 400px; border-radius: 8px; margin-top: 0.5rem;"></div>
+        <p class="helptext">Click on the map to set the exact pickup location for your meal</p>
+      </div>
+      
+      <button type="submit" class="btn" style="margin-top: 1.5rem; width: 100%;">Create Listing</button>
+    </form>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Initialize map centered on a default location (you can customize this)
+  const map = L.map('map').setView([40.7128, -74.0060], 13);
+  
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+  
+  let marker = null;
+  
+  // Handle map clicks
+  map.on('click', function(e) {
+    const lat = e.latlng.lat;
+    const lng = e.latlng.lng;
+    
+    // Update hidden form fields
+    document.getElementById('id_pickup_latitude').value = lat;
+    document.getElementById('id_pickup_longitude').value = lng;
+    
+    // Remove old marker if exists
+    if (marker) {
+      map.removeLayer(marker);
+    }
+    
+    // Add new marker
+    marker = L.marker([lat, lng]).addTo(map);
+  });
+  
+  // If editing and coordinates exist, show marker
+  const latInput = document.getElementById('id_pickup_latitude');
+  const lngInput = document.getElementById('id_pickup_longitude');
+  
+  if (latInput.value && lngInput.value) {
+    const lat = parseFloat(latInput.value);
+    const lng = parseFloat(lngInput.value);
+    marker = L.marker([lat, lng]).addTo(map);
+    map.setView([lat, lng], 15);
+  }
+</script>
+{% endblock %}

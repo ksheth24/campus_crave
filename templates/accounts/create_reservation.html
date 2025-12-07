@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Reserve {{ meal.title }} - CampusCrave{% endblock %}
+
+{% block content %}
+  <div style="max-width: 800px; margin: 0 auto;">
+    <a href="{% url 'accounts:meal_detail' meal.id %}" style="color: #666; text-decoration: none; display: inline-block; margin-bottom: 1rem;">
+      ← Back to Meal Details
+    </a>
+    
+    <div class="card">
+      <h1 style="margin-bottom: 2rem; color: #333;">Reserve Your Meal</h1>
+      
+      <!-- Meal Summary -->
+      <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+        <div style="display: grid; grid-template-columns: auto 1fr; gap: 1.5rem; align-items: center;">
+          {% if meal.photo %}
+            <img src="{{ meal.photo.url }}" alt="{{ meal.title }}" 
+                 style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;">
+          {% else %}
+            <div style="width: 120px; height: 120px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem;">
+              🍜
+            </div>
+          {% endif %}
+          
+          <div>
+            <h2 style="margin: 0 0 0.5rem 0; color: #333;">{{ meal.title }}</h2>
+            <p style="color: #666; margin: 0 0 0.5rem 0;">by {{ meal.seller.username }}</p>
+            <p style="color: #ff6b6b; font-size: 1.5rem; font-weight: bold; margin: 0;">${{ meal.price }} per portion</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Order Form -->
+      <form method="post">
+        {% csrf_token %}
+        
+        <div style="margin-bottom: 1.5rem;">
+          <label for="{{ form.quantity.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: #333;">
+            Quantity
+          </label>
+          {{ form.quantity }}
+          {% if form.quantity.help_text %}
+            <p style="color: #666; font-size: 0.9rem; margin-top: 0.25rem;">{{ form.quantity.help_text }}</p>
+          {% endif %}
+          {% if form.quantity.errors %}
+            <p style="color: #dc3545; font-size: 0.9rem; margin-top: 0.25rem;">{{ form.quantity.errors.0 }}</p>
+          {% endif %}
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+          <label for="{{ form.buyer_phone.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: #333;">
+            Phone Number
+          </label>
+          {{ form.buyer_phone }}
+          {% if form.buyer_phone.help_text %}
+            <p style="color: #666; font-size: 0.9rem; margin-top: 0.25rem;">{{ form.buyer_phone.help_text }}</p>
+          {% endif %}
+          {% if form.buyer_phone.errors %}
+            <p style="color: #dc3545; font-size: 0.9rem; margin-top: 0.25rem;">{{ form.buyer_phone.errors.0 }}</p>
+          {% endif %}
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+          <label for="{{ form.buyer_notes.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: #333;">
+            Special Requests (Optional)
+          </label>
+          {{ form.buyer_notes }}
+          {% if form.buyer_notes.help_text %}
+            <p style="color: #666; font-size: 0.9rem; margin-top: 0.25rem;">{{ form.buyer_notes.help_text }}</p>
+          {% endif %}
+          {% if form.buyer_notes.errors %}
+            <p style="color: #dc3545; font-size: 0.9rem; margin-top: 0.25rem;">{{ form.buyer_notes.errors.0 }}</p>
+          {% endif %}
+        </div>
+        
+        <!-- Pickup Location Info -->
+        <div style="background: #e3f2fd; padding: 1rem; border-radius: 8px; margin-bottom: 2rem; border-left: 4px solid #2196f3;">
+          <h3 style="margin: 0 0 0.5rem 0; color: #1976d2; font-size: 1rem;">📍 Pickup Location</h3>
+          <p style="margin: 0; color: #333;">{{ meal.pickup_location }}</p>
+        </div>
+        
+        <div style="display: flex; gap: 1rem;">
+          <button type="submit" class="btn" style="flex: 1; padding: 1rem; font-size: 1.1rem;">
+            Confirm Reservation
+          </button>
+          <a href="{% url 'accounts:meal_detail' meal.id %}" class="btn btn-secondary" style="flex: 1; text-align: center; padding: 1rem;">
+            Cancel
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <style>
+    input[type="number"],
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1rem;
+      font-family: inherit;
+    }
+    
+    input[type="number"]:focus,
+    input[type="text"]:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+  </style>
+{% endblock %}
+

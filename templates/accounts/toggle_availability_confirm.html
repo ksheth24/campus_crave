@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Change Availability - CampusCrave{% endblock %}
+
+{% block content %}
+  <div class="card" style="max-width: 600px; margin: 2rem auto;">
+    <h2 style="margin-bottom: 1.5rem;">Confirm Status Change</h2>
+    
+    <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+      <h3>{{ meal.title }}</h3>
+      <p style="color: #666; margin-top: 0.5rem;">
+        Current status: 
+        {% if meal.is_available %}
+          <span style="color: #28a745; font-weight: bold;">Available</span>
+        {% else %}
+          <span style="color: #dc3545; font-weight: bold;">Sold</span>
+        {% endif %}
+      </p>
+      <p style="color: #ff6b6b; font-size: 1.25rem; font-weight: bold; margin-top: 0.5rem;">${{ meal.price }}</p>
+    </div>
+    
+    <p style="margin-bottom: 1.5rem;">
+      {% if meal.is_available %}
+        Are you sure you want to mark this meal as <strong>sold</strong>?
+      {% else %}
+        Are you sure you want to mark this meal as <strong>available</strong> again?
+      {% endif %}
+    </p>
+    
+    <form method="post">
+      {% csrf_token %}
+      <div style="display: flex; gap: 1rem;">
+        <button type="submit" class="btn" style="flex: 1;">Yes, Change Status</button>
+        <a href="{% url 'accounts:my_meals' %}" class="btn btn-secondary" style="flex: 1; text-align: center;">Cancel</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

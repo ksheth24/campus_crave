@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}My Meal Listings - CampusCrave{% endblock %}
+
+{% block content %}
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2>My Meal Listings</h2>
+    <a href="{% url 'accounts:create_meal' %}" class="btn">+ Create New Listing</a>
+  </div>
+
+  {% if meals %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+      {% for meal in meals %}
+        <div class="card" {% if not meal.is_available %}style="opacity: 0.7; background: #f8f9fa;"{% endif %}>
+          {% if meal.photo %}
+            <img src="{{ meal.photo.url }}" alt="{{ meal.title }}" 
+                 style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 1rem;">
+          {% else %}
+            <div style="width: 100%; height: 200px; background: #f0f0f0; border-radius: 8px; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; color: #999;">
+              No Image
+            </div>
+          {% endif %}
+          
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+            <h3 style="margin: 0;">{{ meal.title }}</h3>
+            {% if not meal.is_available %}
+              <span style="background: #dc3545; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">SOLD</span>
+            {% endif %}
+          </div>
+          
+          <p style="color: #ff6b6b; font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem;">${{ meal.price }}</p>
+          <p style="color: #666; margin-bottom: 0.5rem;">📍 {{ meal.pickup_location }}</p>
+          <p style="color: #666; margin-bottom: 1rem;">
+            {% if meal.is_available %}
+              <span style="color: #28a745;">● Available</span>
+            {% else %}
+              <span style="color: #dc3545;">● Unavailable</span>
+            {% endif %}
+          </p>
+          
+          <div style="display: flex; gap: 0.5rem; flex-direction: column;">
+            <div style="display: flex; gap: 0.5rem;">
+              <a href="{% url 'accounts:edit_meal' meal.id %}" class="btn btn-secondary" style="flex: 1; text-align: center; font-size: 0.9rem;">Edit</a>
+              <a href="{% url 'accounts:delete_meal' meal.id %}" class="btn" style="flex: 1; text-align: center; font-size: 0.9rem; background: #dc3545;">Delete</a>
+            </div>
+            
+            <a href="{% url 'accounts:toggle_meal_availability' meal.id %}" class="btn" 
+               style="text-align: center; font-size: 0.9rem; background: {% if meal.is_available %}#ffc107{% else %}#28a745{% endif %};">
+              {% if meal.is_available %}
+                Mark as Sold
+              {% else %}
+                Mark as Available
+              {% endif %}
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card" style="text-align: center; padding: 3rem;">
+      <p style="color: #666; margin-bottom: 1rem;">You haven't created any meal listings yet.</p>
+      <a href="{% url 'accounts:create_meal' %}" class="btn">Create Your First Listing</a>
+    </div>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}My Reviews - CampusCrave{% endblock %}
+
+{% block content %}
+  <div style="max-width: 1200px; margin: 0 auto;">
+    <h1 style="margin-bottom: 2rem; color: #333;">My Reviews & Ratings</h1>
+    
+    {% if total_reviews > 0 %}
+      <!-- Rating Summary Card -->
+      <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: 2rem;">
+        <div style="display: grid; grid-template-columns: auto 1fr; gap: 3rem; align-items: center;">
+          <div style="text-align: center;">
+            <div style="font-size: 4rem; font-weight: bold; line-height: 1;">
+              {{ average_rating|floatformat:1 }}
+            </div>
+            <div style="font-size: 1.2rem; margin-top: 0.5rem; opacity: 0.9;">
+              ⭐⭐⭐⭐⭐
+            </div>
+            <div style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.8;">
+              Average Rating
+            </div>
+          </div>
+          
+          <div>
+            <div style="font-size: 2rem; font-weight: bold; margin-bottom: 1rem;">
+              {{ total_reviews }} Review{{ total_reviews|pluralize }}
+            </div>
+            
+            <!-- Rating Distribution -->
+            <div style="background: rgba(255, 255, 255, 0.2); padding: 1rem; border-radius: 8px;">
+              <div style="font-size: 0.9rem; margin-bottom: 0.5rem; opacity: 0.9;">Rating Breakdown</div>
+              {% for rating, count in rating_distribution %}
+                <div style="display: grid; grid-template-columns: auto 1fr auto; gap: 0.75rem; align-items: center; margin-bottom: 0.4rem;">
+                  <span style="font-weight: 500;">{{ rating }}⭐</span>
+                  <div style="background: rgba(255, 255, 255, 0.3); height: 8px; border-radius: 4px; position: relative; overflow: hidden;">
+                    {% if total_reviews > 0 %}
+                      <div style="background: white; height: 100%; width: {% widthratio count total_reviews 100 %}%; transition: width 0.3s;"></div>
+                    {% endif %}
+                  </div>
+                  <span style="font-size: 0.85rem; opacity: 0.9;">{{ count }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- All Reviews List -->
+      <h2 style="margin-bottom: 1.5rem; color: #333; font-size: 1.5rem;">All Reviews</h2>
+      <div style="display: grid; gap: 1.5rem;">
+        {% for review in reviews %}
+          <div class="card" style="background: white; border: 1px solid #e0e0e0;">
+            <div style="display: grid; grid-template-columns: auto 1fr; gap: 2rem; align-items: start;">
+              <!-- Rating Badge -->
+              <div style="text-align: center; min-width: 100px;">
+                <div style="background: linear-gradient(135deg, #ff9800 0%, #ff6b6b 100%); color: white; padding: 1rem; border-radius: 12px; font-size: 2rem; font-weight: bold;">
+                  {{ review.rating }}/5
+                </div>
+                <div style="margin-top: 0.5rem; font-size: 1.5rem;">
+                  {% if review.rating == 5 %}⭐⭐⭐⭐⭐
+                  {% elif review.rating == 4 %}⭐⭐⭐⭐
+                  {% elif review.rating == 3 %}⭐⭐⭐
+                  {% elif review.rating == 2 %}⭐⭐
+                  {% else %}⭐
+                  {% endif %}
+                </div>
+                <div style="color: #999; font-size: 0.85rem; margin-top: 0.5rem;">
+                  {{ review.created_at|date:"M d, Y" }}
+                </div>
+              </div>
+              
+              <!-- Review Details -->
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.75rem;">
+                  <div>
+                    <h3 style="margin: 0 0 0.25rem 0; color: #333; font-size: 1.2rem;">
+                      {{ review.meal.title }}
+                    </h3>
+                    <p style="margin: 0; color: #666; font-size: 0.9rem;">
+                      👤 by {{ review.buyer.username }}
+                      {% if review.buyer.email %}
+                        <span style="color: #999;"> • {{ review.buyer.email }}</span>
+                      {% endif %}
+                    </p>
+                  </div>
+                </div>
+                
+                {% if review.comment %}
+                  <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 0.75rem; border-left: 4px solid #ff9800;">
+                    <p style="margin: 0; color: #555; line-height: 1.6; white-space: pre-wrap;">{{ review.comment }}</p>
+                  </div>
+                {% else %}
+                  <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 0.75rem;">
+                    <p style="margin: 0; color: #999; font-style: italic;">No written review provided.</p>
+                  </div>
+                {% endif %}
+                
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.85rem; color: #999;">
+                  <span>📅 {{ review.created_at|date:"F j, Y" }} at {{ review.created_at|date:"g:i A" }}</span>
+                  <span>📋 Order #{{ review.reservation.id }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <!-- No Reviews Yet -->
+      <div class="card" style="text-align: center; padding: 4rem 2rem;">
+        <div style="font-size: 5rem; margin-bottom: 1.5rem;">⭐</div>
+        <h2 style="color: #666; margin: 0 0 1rem 0; font-size: 1.8rem;">No Reviews Yet</h2>
+        <p style="color: #999; margin: 0 0 2rem 0; max-width: 500px; margin-left: auto; margin-right: auto; line-height: 1.6;">
+          When buyers complete orders and leave reviews, they will appear here. Keep providing great meals to build your reputation!
+        </p>
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+          <a href="{% url 'accounts:my_meals' %}" class="btn btn-secondary">View My Meals</a>
+          <a href="{% url 'accounts:seller_orders' %}" class="btn">View Orders</a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}
+

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="card" style="text-align: center; padding: 3rem;">
+    <h2 style="font-size: 2.5rem; margin-bottom: 1rem; color: #ff6b6b;">Welcome to CampusCrave</h2>
+    <p style="font-size: 1.2rem; color: #666; margin-bottom: 2rem;">
+      Buy and sell delicious home-cooked meals on your campus
+    </p>
+
+    <div style="display: flex; gap: 2rem; justify-content: center; margin-top: 2rem;">
+      <div style="flex: 1; max-width: 300px;">
+        <h3 style="color: #4ecdc4; margin-bottom: 0.5rem;">🍽️ For Buyers</h3>
+        <p style="margin-bottom: 1rem;">Discover amazing home-cooked meals near you</p>
+        <a href="{% url 'accounts:browse_meals' %}" class="btn btn-secondary">Browse Meals</a>
+      </div>
+      
+      <div style="flex: 1; max-width: 300px;">
+        <h3 style="color: #ff6b6b; margin-bottom: 0.5rem;">👨‍🍳 For Sellers</h3>
+        <p style="margin-bottom: 1rem;">Share your culinary creations and earn money</p>
+        {% if user.is_authenticated %}
+          {% if user.profile.is_verified_seller %}
+            <a href="{% url 'accounts:create_meal' %}" class="btn">Create Listing</a>
+          {% else %}
+            <a href="{% url 'accounts:verification_apply' %}" class="btn">Get Verified</a>
+          {% endif %}
+        {% else %}
+          <a href="{% url 'accounts:register' %}" class="btn">Sign Up to Sell</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-bottom: 1rem;">How It Works</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+      <div>
+        <strong>1. Browse</strong>
+        <p style="color: #666; margin-top: 0.5rem;">Explore meals on our interactive map</p>
+      </div>
+      <div>
+        <strong>2. Connect</strong>
+        <p style="color: #666; margin-top: 0.5rem;">Contact sellers directly for pickup details</p>
+      </div>
+      <div>
+        <strong>3. Enjoy</strong>
+        <p style="color: #666; margin-top: 0.5rem;">Pick up your meal and enjoy!</p>
+      </div>
+    </div>
+  </div>
+{% endblock %}
