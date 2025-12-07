@@ -54,11 +54,12 @@ class UserRegistrationForm(UserCreationForm):
 class MealForm(forms.ModelForm):
     class Meta:
         model = Meal
-        fields = ['title', 'description', 'ingredients', 'photo', 'price', 'dietary_tags',
+        fields = ['title', 'description', 'ingredients', 'photo', 'price', 'dietary_tags', 'nutrition_info',
                   'pickup_location', 'pickup_latitude', 'pickup_longitude']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
             'ingredients': forms.Textarea(attrs={'rows': 3}),
+            'nutrition_info': forms.Textarea(attrs={'rows': 2, 'placeholder': 'e.g., Calories: 450, Protein: 25g, Carbs: 40g, Fat: 15g'}),
             'pickup_latitude': forms.HiddenInput(),
             'pickup_longitude': forms.HiddenInput(),
         }
@@ -66,6 +67,7 @@ class MealForm(forms.ModelForm):
             'pickup_location': 'Enter a descriptive location (e.g., "Main Library, 2nd Floor")',
             'price': 'Price in USD',
             'dietary_tags': 'Select the dietary category that best describes this meal',
+            'nutrition_info': 'Optional: Add nutrition facts to help buyers make informed choices',
         }
     
     def clean(self):

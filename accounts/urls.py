@@ -30,6 +30,7 @@ urlpatterns = [
     path('orders/<int:reservation_id>/update-status/', views.update_order_status, name='update_order_status'),
     path('orders/<int:reservation_id>/cancel/', views.cancel_order, name='cancel_order'),
     path('orders/<int:reservation_id>/review/', views.leave_review, name='leave_review'),
+    path('orders/<int:reservation_id>/chat/', views.order_chat, name='order_chat'),
     
     # API
     path('api/meals/', views.meals_api, name='meals_api'),

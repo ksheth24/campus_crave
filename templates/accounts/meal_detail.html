@@ -121,6 +121,15 @@
         <p style="color: #666; line-height: 1.6; white-space: pre-wrap;">{{ meal.ingredients }}</p>
       </div>
       
+      {% if meal.nutrition_info %}
+      <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e0e0e0;">
+        <h3 style="margin-bottom: 1rem;">Nutrition Information</h3>
+        <div style="background: #fff3e0; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #ff9800;">
+          <p style="color: #e65100; line-height: 1.8; white-space: pre-wrap; margin: 0;">{{ meal.nutrition_info }}</p>
+        </div>
+      </div>
+      {% endif %}
+      
       <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e0e0e0;">
         <h3 style="margin-bottom: 1rem;">Recent Reviews</h3>
         {% if reviews %}

@@ -78,6 +78,10 @@
               <div>
                 <p style="color: #ff6b6b; font-size: 2rem; font-weight: bold; margin: 0 0 1.5rem 0; text-align: right;">${{ order.total_price }}</p>
                 
+                <a href="{% url 'accounts:order_chat' order.id %}" class="btn btn-secondary" style="width: 100%; text-align: center; margin-bottom: 1rem; padding: 0.75rem;">
+                  💬 Chat with Buyer
+                </a>
+                
                 {% if order.status not in 'completed,cancelled' %}
                   <form method="post" action="{% url 'accounts:update_order_status' order.id %}">
                     {% csrf_token %}

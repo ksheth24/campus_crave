@@ -77,12 +77,18 @@
               <div style="text-align: right;">
                 <p style="color: #ff6b6b; font-size: 2rem; font-weight: bold; margin: 0 0 1rem 0;">${{ order.total_price }}</p>
                 
-                {% if order.status not in 'completed,cancelled' %}
-                  <a href="{% url 'accounts:cancel_order' order.id %}" 
-                     style="color: #dc3545; text-decoration: none; font-size: 0.9rem;">
-                    Cancel Order
+                <div style="display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end;">
+                  <a href="{% url 'accounts:order_chat' order.id %}" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.9rem; text-decoration: none;">
+                    💬 Chat with Seller
                   </a>
-                {% endif %}
+                  
+                  {% if order.status not in 'completed,cancelled' %}
+                    <a href="{% url 'accounts:cancel_order' order.id %}" 
+                       style="color: #dc3545; text-decoration: none; font-size: 0.9rem;">
+                      Cancel Order
+                    </a>
+                  {% endif %}
+                </div>
               </div>
             </div>
 

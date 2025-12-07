@@ -67,6 +67,12 @@ class Meal(models.Model):
         help_text="Select the primary dietary category for this meal"
     )
     
+    # Nutrition information (optional)
+    nutrition_info = models.TextField(
+        blank=True,
+        help_text="Optional nutrition facts (e.g., 'Calories: 450, Protein: 25g, Carbs: 40g')"
+    )
+    
     # Pickup location
     pickup_location = models.CharField(max_length=300)
     pickup_latitude = models.FloatField()
@@ -135,3 +141,19 @@ class Review(models.Model):
 
     def __str__(self):
         return f"Review {self.rating}/5 by {self.buyer.username} for {self.meal.title}"
+
+
+class Message(models.Model):
+    """Simple messaging between buyers and sellers for a specific reservation."""
+    reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name='messages')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['created_at']
+    
+    def __str__(self):
+        return f"Message from {self.sender.username} to {self.receiver.username} (Order #{self.reservation.id})"

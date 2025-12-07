@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.db.models import Avg, Count
 from .forms import VerificationForm, UserRegistrationForm, MealForm, ReservationForm, ReviewForm, MealFilterForm
-from .models import Meal, UserProfile, SellerVerificationApplication, Reservation, Review
+from .models import Meal, UserProfile, SellerVerificationApplication, Reservation, Review, Message
 
 
 def home(request):
@@ -221,6 +221,7 @@ def meals_api(request):
         'title': meal.title,
         'price': str(meal.price),
         'dietary_tags': meal.get_dietary_tags_display(),
+        'nutrition_info': meal.nutrition_info or '',
         'pickup_location': meal.pickup_location,
         'latitude': meal.pickup_latitude,
         'longitude': meal.pickup_longitude,
@@ -356,3 +357,42 @@ def cancel_order(request, reservation_id):
         return redirect('accounts:my_orders')
     
     return render(request, 'accounts/cancel_order_confirm.html', {'reservation': reservation})
+
+
+@login_required
+def order_chat(request, reservation_id):
+    """Chat between buyer and seller for a specific reservation."""
+    reservation = get_object_or_404(Reservation, id=reservation_id)
+    
+    # Check if user is buyer or seller
+    if request.user != reservation.buyer and request.user != reservation.meal.seller:
+        messages.error(request, 'You do not have access to this conversation.')
+        return redirect('home')
+    
+    # Determine other party
+    other_user = reservation.meal.seller if request.user == reservation.buyer else reservation.buyer
+    
+    # Mark messages as read
+    Message.objects.filter(reservation=reservation, receiver=request.user, is_read=False).update(is_read=True)
+    
+    # Handle new message
+    if request.method == 'POST':
+        content = request.POST.get('content', '').strip()
+        if content:
+            Message.objects.create(
+                reservation=reservation,
+                sender=request.user,
+                receiver=other_user,
+                content=content
+            )
+            messages.success(request, 'Message sent!')
+            return redirect('accounts:order_chat', reservation_id=reservation_id)
+    
+    # Get all messages for this reservation
+    chat_messages = reservation.messages.select_related('sender', 'receiver').all()
+    
+    return render(request, 'accounts/order_chat.html', {
+        'reservation': reservation,
+        'chat_messages': chat_messages,
+        'other_user': other_user,
+    })
