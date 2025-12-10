@@ -234,6 +234,9 @@
           {% if meal.dietary_tags != 'none' %}
             <p style="color: #4ecdc4; font-size: 0.85rem; margin-bottom: 0.5rem; font-weight: 500;">🥗 {{ meal.get_dietary_tags_display }}</p>
           {% endif %}
+          {% if meal.calories %}
+            <p style="color: #4caf50; font-size: 0.85rem; margin-bottom: 0.5rem; font-weight: 500;">🍎 {{ meal.calories }} cal</p>
+          {% endif %}
           <p style="color: #666; font-size: 0.9rem; margin-bottom: 0.3rem;">📍 {{ meal.pickup_location }}</p>
           <p style="color: #666; font-size: 0.9rem;">👨‍🍳 {{ meal.seller.username }}</p>
           <a href="{% url 'accounts:meal_detail' meal.id %}" class="btn" style="width: 100%; text-align: center; margin-top: 1rem;">View Details</a>

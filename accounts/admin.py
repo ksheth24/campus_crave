@@ -152,10 +152,25 @@ class UserProfileAdmin(admin.ModelAdmin):
 
 @admin.register(Meal)
 class MealAdmin(admin.ModelAdmin):
-    list_display = ['title', 'seller', 'price', 'dietary_tags', 'pickup_location', 'is_available', 'created_at']
+    list_display = ['title', 'seller', 'price', 'calories', 'dietary_tags', 'is_available', 'created_at']
     list_filter = ['is_available', 'dietary_tags', 'created_at']
-    search_fields = ['title', 'seller__username', 'pickup_location']
+    search_fields = ['title', 'seller__username', 'pickup_location', 'ingredients']
     readonly_fields = ['created_at', 'updated_at']
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('seller', 'title', 'description', 'photo', 'price')
+        }),
+        ('Ingredients & Nutrition', {
+            'fields': ('ingredients', 'dietary_tags', 'calories', 'protein', 'carbs', 'fat', 'allergens', 'nutrition_info'),
+            'description': 'Nutrition information is auto-generated from ingredients via Spoonacular API'
+        }),
+        ('Pickup Location', {
+            'fields': ('pickup_location', 'pickup_latitude', 'pickup_longitude')
+        }),
+        ('Availability', {
+            'fields': ('is_available', 'created_at', 'updated_at')
+        }),
+    )
 
 
 @admin.register(Reservation)

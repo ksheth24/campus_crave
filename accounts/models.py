@@ -67,10 +67,40 @@ class Meal(models.Model):
         help_text="Select the primary dietary category for this meal"
     )
     
-    # Nutrition information (optional)
+    # Nutrition information (auto-generated from Spoonacular API)
+    calories = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Calories per serving (auto-generated)"
+    )
+    protein = models.DecimalField(
+        max_digits=6,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        help_text="Protein in grams (auto-generated)"
+    )
+    carbs = models.DecimalField(
+        max_digits=6,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        help_text="Carbohydrates in grams (auto-generated)"
+    )
+    fat = models.DecimalField(
+        max_digits=6,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        help_text="Fat in grams (auto-generated)"
+    )
+    allergens = models.TextField(
+        blank=True,
+        help_text="Comma-separated list of allergens (auto-generated)"
+    )
     nutrition_info = models.TextField(
         blank=True,
-        help_text="Optional nutrition facts (e.g., 'Calories: 450, Protein: 25g, Carbs: 40g')"
+        help_text="Additional nutrition notes or message from API"
     )
     
     # Pickup location

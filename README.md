@@ -10,14 +10,19 @@ A Django-based marketplace for buying and selling home-cooked meals on campus.
 - **Interactive Map Browsing**: Browse all available meals on an interactive Leaflet.js map
 - **Geolocation Support**: Automatically centers map on your location
 - **Meal Details**: View detailed information including photos, ingredients, price, and pickup location
+- **Nutrition Information**: See calories, macros (protein, carbs, fat), and allergen warnings
+- **Dietary Filters**: Filter meals by dietary preferences (vegetarian, vegan, gluten-free, etc.) and price range
 - **Search & Filter**: Find meals near your dorm or class
 
 #### For Sellers
 - **User Authentication**: Register, login, and manage your account
 - **Seller Verification**: Apply for verification to start selling
 - **Create Listings**: Add meals with title, photo, description, ingredients, price
+- **Auto Nutrition Generation**: Spoonacular API automatically generates nutrition info from ingredients
+- **Smart Dietary Tagging**: AI-powered dietary tag suggestions (vegan, vegetarian, gluten-free, etc.)
+- **Allergen Detection**: Automatic identification of common allergens
 - **Interactive Location Picker**: Click on map to set exact pickup location
-- **ManageListings**: Edit, delete, and toggle availability of your meals
+- **Manage Listings**: Edit, delete, and toggle availability of your meals
 - **Dashboard**: View all your active listings in one place
 
 #### Admin Features
@@ -31,6 +36,8 @@ A Django-based marketplace for buying and selling home-cooked meals on campus.
 - **Frontend**: HTML, CSS, JavaScript
 - **Maps**: Leaflet.js with OpenStreetMap tiles
 - **Image Handling**: Pillow
+- **Nutrition API**: Spoonacular Food API
+- **HTTP Client**: Requests library
 
 ## Installation
 
@@ -49,17 +56,24 @@ pip install -r requirements.txt
 python manage.py migrate
 ```
 
-4. **Create sample data** (optional)
+4. **Configure Spoonacular API** (optional, for nutrition features)
+```bash
+# Get free API key at: https://spoonacular.com/food-api/console#Dashboard
+export SPOONACULAR_API_KEY='your_api_key_here'
+```
+See `SPOONACULAR_INTEGRATION.md` for detailed setup instructions.
+
+5. **Create sample data** (optional)
 ```bash
 python manage.py create_sample_data
 ```
 
-5. **Run the development server**
+6. **Run the development server**
 ```bash
 python manage.py runserver
 ```
 
-6. **Access the application**
+7. **Access the application**
 - Main site: http://127.0.0.1:8000/
 - Admin panel: http://127.0.0.1:8000/admin/
 
@@ -131,14 +145,24 @@ campus_crave/
 - **Media files**: Served by Django in development
 - **Database**: SQLite (consider PostgreSQL for production)
 
+## Documentation
+
+- **`SPOONACULAR_INTEGRATION.md`** - Complete guide to nutrition API integration
+- **`TESTING_SPOONACULAR.md`** - Testing guide for nutrition features
+- **`FILTERING_FEATURE.md`** - Meal filtering system documentation
+- **`LINT_FIXES.md`** - Code quality improvements documentation
+- **`ADMIN_ACCESS.md`** - Admin panel access information
+
 ## Next Steps / Future Enhancements
 
 - Order/purchase system
 - Payment integration
 - Messaging between buyers and sellers
-- Reviews and ratings
+- ✅ Reviews and ratings (implemented)
 - Email notifications
-- Advanced search filters
+- ✅ Advanced search filters (implemented)
+- Nutrition label image generation
+- Serving size adjustments
 - Mobile app
 - Production deployment configuration
 

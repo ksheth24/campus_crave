@@ -13,6 +13,10 @@ build/
 db.sqlite3
 db.sqlite3-journal
 
+# Environment variables
+.env
+.env.local
+
 # Media files (user uploads)
 media/
 

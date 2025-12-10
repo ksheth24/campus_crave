@@ -5,8 +5,12 @@ DEBUG mode are included.
 """
 from pathlib import Path
 import os
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables from .env file
+load_dotenv(BASE_DIR / '.env')
 
 SECRET_KEY = 'dev-secret-for-local'
 
@@ -79,3 +83,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+# Spoonacular API settings
+# Get your free API key at: https://spoonacular.com/food-api/console#Dashboard
+SPOONACULAR_API_KEY = os.environ.get('SPOONACULAR_API_KEY', '')
+SPOONACULAR_API_BASE_URL = 'https://api.spoonacular.com'
